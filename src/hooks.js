@@ -23,14 +23,14 @@
 // };
 
 export function getSession() {
-	let beebeesApi = '';
-	if (typeof process !== 'undefined' && process.env) {
-		beebeesApi = process.env['BEEBEES_API'];
-	}
-	else {
-		beebeesApi = import.meta.env.BEEBEES_API;
-	}
+	// let beebeesApi = '';
+	// if (typeof process !== 'undefined' && process.env) {
+	// 	beebeesApi = process.env['BEEBEES_API'];
+	// }
+	// else {
+	// 	beebeesApi = import.meta.env.VITE_BEEBEES_API;
+	// }
 	return {
-		BEEBEES_API: beebeesApi // || 'https://beebees-dev.vilvei.workers.dev/api'
+		BEEBEES_API: import.meta.env.VITE_BEEBEES_API // || 'https://beebees-dev.vilvei.workers.dev/api'
 	};
 }
