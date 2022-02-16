@@ -21,3 +21,9 @@ export const handle = async ({ event, resolve }) => {
 
 	return response;
 };
+
+export function getSession() {
+	return {
+		BEEBEES_API: import.meta.env.BEEBEES_API// || 'https://beebees-dev.vilvei.workers.dev/api'
+	};
+}

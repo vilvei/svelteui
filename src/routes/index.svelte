@@ -1,18 +1,40 @@
 <script context="module">
 	// export const prerender = true;
 
-	export async function load({fetch}) {
-
-		return {
-			status: 200,
-			props: {msg: 'hello there' }
+	// let api = import.meta.env.BEEBEES_API;
+	export async function load({fetch, session}) {
+		console.log("index load, session: ");
+		console.log(session);
+		let status = 200;
+		try {
+			// const resp = await fetch(`${session.BEEBEES_API}/info`);
+			const api = session.BEEBEES_API;
+			const resp = await fetch(`${api}/info`);
+			status = resp.status;
+			if (!resp.ok) {
+				throw (await resp.text());
+			}
+			return {
+				status,
+				props: { apiInfo: await resp.json() }
+			}
+		} catch (exp) {
+			return {
+				status,
+				error: exp.toString()
+			}
 		}
 	}
 
 </script>
 
 <script>
-	export let msg;
+import { get } from 'svelte/store';
+import { session } from "$app/stores";
+const { BEEBEES_API } = get(session);
+
+	export let apiInfo = {};
+	// const api = import.meta.env.BEEBEES_API;
 </script>
 
 <svelte:head>
@@ -21,7 +43,10 @@
 
 	<div>to your new SvelteKit app</div>
 	<button class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-yellow-400 transition duration-200 ease-in-out hover:bg-gray-900">Button</button>
-	<div>{msg}</div>
+	<div>api: {BEEBEES_API}</div>
+	<div>{apiInfo.service}</div>
+	<div>{apiInfo.version}</div>
+	<div>{apiInfo.time}</div>
 
 <style>
 
