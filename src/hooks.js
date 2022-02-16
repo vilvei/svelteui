@@ -24,7 +24,7 @@
 
 export function getSession() {
 	let beebeesApi = '';
-	if (process && process.env) {
+	if (typeof process !== 'undefined' && process.env) {
 		beebeesApi = process.env['BEEBEES_API'];
 	}
 	else {
