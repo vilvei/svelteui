@@ -1,8 +1,18 @@
 <script context="module">
-	export const prerender = true;
+	// export const prerender = true;
+
+	export async function load({fetch}) {
+
+		return {
+			status: 200,
+			props: {msg: 'hello there' }
+		}
+	}
+
 </script>
 
 <script>
+	export let msg;
 </script>
 
 <svelte:head>
@@ -11,6 +21,7 @@
 
 	<div>to your new SvelteKit app</div>
 	<button class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-yellow-400 transition duration-200 ease-in-out hover:bg-gray-900">Button</button>
+	<div>{msg}</div>
 
 <style>
 
