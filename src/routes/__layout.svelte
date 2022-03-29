@@ -1,18 +1,18 @@
 <script>
 import '../app.css';
 import '../tailwind.css';
-	// import Header from '$lib/header/Header.svelte';
+import Header from '$lib/header/Header.svelte';
 </script>
 
-<!-- <Header /> -->
+<Header />
 
 <main>
 	<slot />
 </main>
 
-<footer>
+<!-- <footer>
 	<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
-</footer>
+</footer> -->
 
 <style>
 	main {

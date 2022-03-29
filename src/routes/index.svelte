@@ -1,22 +1,52 @@
-<script context="module">
-	// export const prerender = true;
 
+<!-- <script context="module">
+import { decode } from 'js-base64';
+
+	// export const prerender = true;
 	// let api = import.meta.env.BEEBEES_API;
 	export async function load({fetch, session}) {
+
+		// clean roles here, if there is more than 15 roles and time is up.
+		// open jwt payload. Check roles.
+		// If rolesCreated + 3 days < now ANd there is more than 15 roles
+		// ${API}/user/createtoken?clearroles=true
+
+		let newtoken = '';
+		if (session.accAuth && Array.isArray(session.accAuth.roles)) {
+			// use is logged in, and has some roles
+			if (session.accAuth.roles.length > 15) {
+				// let's clear these time to time
+				const rolesCreated = new Date(session.accAuth.rolesCreated);
+				if (rolesCreated.getTime() + 3 * 68400000 < Date.now()) {
+					const resp0 = await fetch(`${session.API}/user/createtoken?clearroles=true`, {
+						credentials: 'include',
+						headers: { 'authorization': session.accToken }
+					});
+					if (resp0.ok) {
+						newtoken = await resp0.text();
+					}
+				}
+			}
+		}
+
+
 		console.log("index load, session: ");
 		console.log(session);
 		let status = 200;
 		try {
-			// const resp = await fetch(`${session.BEEBEES_API}/info`);
-			const api = session.BEEBEES_API;
-			const resp = await fetch(`${api}/info`);
+			// const api = session.BEEBEES_API;
+			const resp = await fetch(`${session.API}/info`);
 			status = resp.status;
 			if (!resp.ok) {
 				throw (await resp.text());
 			}
+			const apiInfo = await resp.json();
+			apiInfo.api = session.API;
 			return {
 				status,
-				props: { apiInfo: await resp.json() }
+				props: {
+					apiInfo, newtoken
+				}
 			}
 		} catch (exp) {
 			return {
@@ -26,15 +56,84 @@
 		}
 	}
 
-</script>
+</script> -->
 
 <script>
-import { get } from 'svelte/store';
-import { session } from "$app/stores";
-const { BEEBEES_API } = get(session);
+import { onDestroy } from 'svelte';
+// import { get } from 'svelte/store';
+// import { session } from "$app/stores";
+// const { API } = get(session);
 
-	export let apiInfo = {};
-	// const api = import.meta.env.BEEBEES_API;
+import { accessToken, auth } from '../stores.js';
+import { getApipoint, retrieveTokenPayload, dofetch } from '../dofetch.js';
+
+const apipoint = getApipoint();
+export let apiInfo = {};
+export let newtoken = '';
+// const api = import.meta.env.API;
+
+// {userident, roles: []}
+let authob = null;
+const unsubAuth = auth.subscribe(value => {
+	console.log("index-auth.sub: ");
+	console.log(value);
+
+
+	if (value && (value.userident || value.resetted)) {
+		authob = value;
+
+		// if (authob.userident) {
+		// 	console.log("authob.userident: "+ authob.userident);
+		// 	// logged in.
+		// 	//testing roles
+		// 	dofetch(`/user/hasroles/${encodeURIComponent(authob.userident)}`, {
+		// 		body: JSON.stringify('admin-league-Dooms day')//,
+		// 	}).then(resp => {
+		// 		return resp.json();
+		// 	})
+		// 	.then(outdata => {
+		// 		console.log("hasroles outdata: "+ JSON.stringify(outdata))
+		// 	})
+		// 	.catch(err => {
+		// 		console.log("error with hasroles:");
+		// 		console.log(err);
+		// 	});
+		// }
+
+		return;
+	}
+	// ask for new new token. If there is no token, then user is not logged in.
+
+
+	fetch(`${apipoint}/user/createtoken`, {credentials: 'include'}).then(resp => {
+		if (!resp.ok) { throw resp.text(); }
+		return resp.text();
+	}).then(token => {
+		if (!token) { throw 'No token'; }
+		console.log("token");
+		console.log(token);
+		const tpayload = retrieveTokenPayload(token);
+		if (tpayload) {
+			auth.update(() => tpayload);
+			accessToken.update(() => token);
+		}
+	}).catch(async errp => {
+		const err = await errp;
+		console.log("Failed to create token:");
+		console.log(err);
+	});
+
+});
+
+// if (newtoken) {
+// 	accessToken.update(() => newtoken);
+// 	newtoken = '';
+// }
+
+onDestroy(() => {
+	unsubAuth();
+})
+
 </script>
 
 <svelte:head>
@@ -43,10 +142,10 @@ const { BEEBEES_API } = get(session);
 
 	<div>to your new SvelteKit app</div>
 	<button class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-yellow-400 transition duration-200 ease-in-out hover:bg-gray-900">Button</button>
-	<div>api: {BEEBEES_API}</div>
+	<!-- <div>api: {apiInfo.api}</div>
 	<div>{apiInfo.service}</div>
 	<div>{apiInfo.version}</div>
-	<div>{apiInfo.time}</div>
+	<div>{apiInfo.time}</div> -->
 
 <style>
 

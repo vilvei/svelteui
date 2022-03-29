@@ -1,124 +1,138 @@
 <script>
-	import { page } from '$app/stores';
-	import logo from './svelte-logo.svg';
+import { onDestroy } from 'svelte';
+import { page } from '$app/stores';
+// import logo from './svelte-logo.svg';
+import { accessToken, auth } from '../../stores.js';
+import { getApipoint } from '../../dofetch.js';
+
+
+let accToken = '';
+let authPayload = {};
+const unsubAccessToken = accessToken.subscribe(value => accToken = value);
+const unsubAuth = auth.subscribe(value => {
+	console.log("headers auth value: "+ JSON.stringify(value));
+	if (value && (value.userident || value.resetted)) {
+		authPayload = value;
+	}
+});
+
+onDestroy(() => {
+	console.log("onDestroy header");
+	unsubAccessToken();
+	unsubAuth();
+})
+
+
+
+async function logoutClicked() {
+	console.log("logoutClicked");
+
+	try {
+		const apipoint = getApipoint();
+		const resp = await fetch(`${apipoint}/user/logout`, {credentials: 'include'});
+		if (!resp.ok) {
+			throw await resp.text();
+		}
+		const outtext = await resp.text();
+	} catch (exp) {
+		console.log("EXP from logout");
+		console.log(exp);
+	}
+
+	accessToken.update(() => '');
+	auth.update(() => ({resetted: true}));
+}
+
 </script>
 
-<header>
-	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img src={logo} alt="SvelteKit" />
-		</a>
-	</div>
+<header class="bg-gray-800 grid">
 
-	<nav>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L1,2 C1.5,3 1.5,3 2,3 L2,0 Z" />
-		</svg>
-		<ul>
-			<li class:active={$page.url.pathname === '/'}><a sveltekit:prefetch href="/">Home</a></li>
-			<li class:active={$page.url.pathname === '/about'}>
-				<a sveltekit:prefetch href="/about">About</a>
-			</li>
-			<li class:active={$page.url.pathname === '/todos'}>
-				<a sveltekit:prefetch href="/todos">Todos</a>
-			</li>
-		</ul>
-		<svg viewBox="0 0 2 3" aria-hidden="true">
-			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
-		</svg>
-	</nav>
+<!-- <div class="title text-yellow-400">BEEBEES</div> -->
+<div class="title text-yellow-400">JEH</div>
 
-	<div class="corner">
-		<!-- TODO put something else here? github link? -->
-	</div>
+<div class="dropdown dropdown-end">
+	<label tabindex="0" class="btn btn-ghost btn-circle placeholder">
+	<!-- <label tabindex="0" class="btn btn-ghost btn-circle avatar userblock"> -->
+		<!-- <div class="w-10 rounded-full"> justify-center -->
+		<div class="bg-neutral-focus text-neutral-content rounded-full h-full w-24 flex flex-col justify-center">
+			<!-- <img src="https://api.lorem.space/image/face?hash=33791"> -->
+			<!-- <span class="text-1g">uname-joo</span> -->
+
+
+			<div class="bline"></div>
+			<div class="bline"></div>
+			<div class="bline"></div>
+
+		</div>
+	</label>
+
+	<ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
+		{#if authPayload.userident}
+		<li>
+			<div class="justify-between">
+				<a href="/user">Profile</a>
+				<span class="badge"><a href="#" on:click={logoutClicked}>Logout</a></span>
+			</div>
+		</li>
+		{:else}
+		<li><a href="/login">Login</a></li>
+
+
+
+		<!-- <li><a href="/user">Profile</a></li>
+		<li><a href="#" on:click={logoutClicked}>Logout</a></li> -->
+
+		<!-- <li>
+			<a class="justify-between">
+				Profile
+				<span class="badge">New</span>
+			</a>
+		</li>
+		<li><a>Settings</a></li>
+		<li><a href="#" on:click={logoutClicked}>Logout</a></li> -->
+
+		{/if}
+
+
+	</ul>
+</div>
+
 </header>
 
 <style>
 	header {
-		display: flex;
-		justify-content: space-between;
-	}
+		/* display: flex;
+		justify-content: space-between; */
 
-	.corner {
-		width: 3em;
-		height: 3em;
-	}
-
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
 		width: 100%;
+		height: clamp(100px, 10vh, 150px);
+
+		display: grid;
+		grid-template-columns: 1fr 200px;
+  	align-items: end;
+		/* background-color: pink; */
+	}
+
+	.title {
 		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
-	}
-
-	nav {
+		padding-left: clamp(50px, 10vw, 100px);
 		display: flex;
-		justify-content: center;
-		--background: rgba(255, 255, 255, 0.7);
-	}
-
-	svg {
-		width: 2em;
-		height: 3em;
-		display: block;
-	}
-
-	path {
-		fill: var(--background);
-	}
-
-	ul {
-		position: relative;
-		padding: 0;
-		margin: 0;
-		height: 3em;
-		display: flex;
-		justify-content: center;
 		align-items: center;
-		list-style: none;
-		background: var(--background);
-		background-size: contain;
-	}
-
-	li {
-		position: relative;
-		height: 100%;
-	}
-
-	li.active::before {
-		--size: 6px;
-		content: '';
-		width: 0;
-		height: 0;
-		position: absolute;
-		top: 0;
-		left: calc(50% - var(--size));
-		border: var(--size) solid transparent;
-		border-top: var(--size) solid var(--accent-color);
-	}
-
-	nav a {
-		display: flex;
-		height: 100%;
-		align-items: center;
-		padding: 0 1em;
-		color: var(--heading-color);
+		font-size: 400%;
 		font-weight: 700;
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		text-decoration: none;
-		transition: color 0.2s linear;
 	}
 
-	a:hover {
-		color: var(--accent-color);
+	.dropdown {
+	  justify-self: end;
 	}
+
+
+	.bline {
+		width: 60%;
+		height: 3px;
+		background-color: white;
+		margin: 2px auto;
+	}
+
+
 </style>
