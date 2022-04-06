@@ -60,14 +60,15 @@ import { decode } from 'js-base64';
 
 <script>
 import { onDestroy } from 'svelte';
+import { goto } from '$app/navigation';
 // import { get } from 'svelte/store';
 // import { session } from "$app/stores";
 // const { API } = get(session);
 
 import { accessToken, auth } from '../stores.js';
-import { getApipoint, retrieveTokenPayload, dofetch } from '../dofetch.js';
+import { getLoginPoint, refreshToken, retrieveTokenPayload, dofetch } from '../dofetch.js';
 
-const apipoint = getApipoint();
+const apipoint = getLoginPoint();
 export let apiInfo = {};
 export let newtoken = '';
 // const api = import.meta.env.API;
@@ -105,23 +106,30 @@ const unsubAuth = auth.subscribe(value => {
 	// ask for new new token. If there is no token, then user is not logged in.
 
 
-	fetch(`${apipoint}/user/createtoken`, {credentials: 'include'}).then(resp => {
-		if (!resp.ok) { throw resp.text(); }
-		return resp.text();
-	}).then(token => {
-		if (!token) { throw 'No token'; }
-		console.log("token");
-		console.log(token);
-		const tpayload = retrieveTokenPayload(token);
-		if (tpayload) {
-			auth.update(() => tpayload);
-			accessToken.update(() => token);
-		}
-	}).catch(async errp => {
-		const err = await errp;
-		console.log("Failed to create token:");
-		console.log(err);
-	});
+	// fetch(`${apipoint}/user/createtoken`, {credentials: 'include'}).then(async resp => {
+	// 	if (!resp.ok) {
+	// 		const text = await resp.text();
+	// 		console.log("resp NOT ok: "+ text)
+	// 		throw text;
+	// 	}
+	// 	return resp.text();
+	// })
+
+	refreshToken()
+		.then(token => {
+			if (!token) { throw 'No token'; }
+			console.log("token");
+			console.log(token);
+			const tpayload = retrieveTokenPayload(token);
+			if (tpayload) {
+				auth.update(() => tpayload);
+				accessToken.update(() => token);
+			}
+		}).catch(async errp => {
+			const err = await errp;
+			console.log("Failed to create token:");
+			console.log(err);
+		});
 
 });
 
@@ -134,14 +142,32 @@ onDestroy(() => {
 	unsubAuth();
 })
 
+function createTeamsC() {
+	console.log("createTeamsC");
+	goto('/teams');
+}
+
+function printCardsC() {
+	console.log("printCardsC");
+	goto('/cards');
+}
+
 </script>
 
 <svelte:head>
-	<title>Home</title>
+	<title>Beebees.live</title>
 </svelte:head>
 
-	<div>to your new SvelteKit app</div>
-	<button class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-yellow-400 transition duration-200 ease-in-out hover:bg-gray-900">Button</button>
+
+	<!-- Offer two big boxes: +create-teams +print-cards -->
+	<div class="twowidegrid">
+		<div class="plate" on:click={createTeamsC}>Create Teams</div>
+		<div class="plate" on:click={printCardsC}>Print cards</div>
+	</div>
+
+
+	<!-- <div>to your new SvelteKit app</div>
+	<button class="inline-block cursor-pointer rounded-md bg-gray-800 px-4 py-3 text-center text-sm font-semibold uppercase text-yellow-400 transition duration-200 ease-in-out hover:bg-gray-900">Button</button> -->
 	<!-- <div>api: {apiInfo.api}</div>
 	<div>{apiInfo.service}</div>
 	<div>{apiInfo.version}</div>
@@ -149,7 +175,27 @@ onDestroy(() => {
 
 <style>
 
-	div {
+	/* div {
 		@apply text-4xl bg-gray-800 text-yellow-400 py-2 px-6 font-bold;
+	} */
+
+	.plate {
+		@apply text-4xl bg-gray-800 text-yellow-400 py-2 px-6 font-bold;
+		display: flex;
+		justify-content: center;
+		text-align: center;
+		align-items: center;
+		/* max-width: 45%; */
 	}
+
+	.twowidegrid {
+		display: grid;
+		margin: 0 auto;
+		/* max-width: 80%; */
+		width: 80%;
+		min-height: 200px;
+		gap: 20px;
+		grid-template-columns: repeat(2, max(50%, 200px));
+	}
+
 </style>

@@ -3,7 +3,7 @@ import { onDestroy } from 'svelte';
 import { page } from '$app/stores';
 // import logo from './svelte-logo.svg';
 import { accessToken, auth } from '../../stores.js';
-import { getApipoint } from '../../dofetch.js';
+import { getLoginPoint } from '../../dofetch.js';
 
 
 let accToken = '';
@@ -28,7 +28,7 @@ async function logoutClicked() {
 	console.log("logoutClicked");
 
 	try {
-		const apipoint = getApipoint();
+		const apipoint = getLoginPoint();
 		const resp = await fetch(`${apipoint}/user/logout`, {credentials: 'include'});
 		if (!resp.ok) {
 			throw await resp.text();
@@ -48,7 +48,7 @@ async function logoutClicked() {
 <header class="bg-gray-800 grid">
 
 <!-- <div class="title text-yellow-400">BEEBEES</div> -->
-<div class="title text-yellow-400">JEH</div>
+<div class="title text-yellow-400">BeeBees</div>
 
 <div class="dropdown dropdown-end">
 	<label tabindex="0" class="btn btn-ghost btn-circle placeholder">

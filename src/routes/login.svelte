@@ -29,7 +29,7 @@ import { goto } from '$app/navigation';
 // import { get } from 'svelte/store';
 // import { session } from "$app/stores";
 import { accessToken, auth } from '../stores.js';
-import { getApipoint, retrieveTokenPayload } from '../dofetch.js';
+import { getLoginPoint, retrieveTokenPayload } from '../dofetch.js';
 
 
 // const { API } = get(session);
@@ -63,7 +63,7 @@ const unsubAuth = auth.subscribe(value => {
 	if (!value || !value.userident) {
 		// ask for new new token. If there is no token, then user is not logged in.
 
-		const apipoint = getApipoint();
+		const apipoint = getLoginPoint();
 
 		fetch(`${apipoint}/user/createtoken`, {credentials: 'include'}).then(resp => {
 			if (!resp.ok) { throw resp.text(); }
@@ -104,7 +104,7 @@ async function submitClicked() {
   }
 
   try {
-    const apipoint = getApipoint();
+    const apipoint = getLoginPoint();
     const resp = await fetch(`${apipoint}/user/login`, {
       method: 'post',
       // credentials: "same-origin",

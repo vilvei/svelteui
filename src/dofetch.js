@@ -5,10 +5,10 @@
 
 import { decode } from 'js-base64';
 import { accessToken, auth } from './stores.js';
+import { jsonType } from './util.js';
 
-const jsonType = 'application/json;charset=utf-8';
-
-const apipoint = import.meta.env.VITE_BEEBEES_API;
+const apipoint = `https://api${import.meta.env.VITE_DOMAIN_NAME}`;
+const loginpoint = `https://userapi${import.meta.env.VITE_DOMAIN_NAME}`;
 let accToken = '';
 let authPayload;
 // api.subscribe(value => apipoint = value);
@@ -107,9 +107,9 @@ function retrieveTokenPayload(token) {
 async function refreshToken(token, {fetch_, clearRoles} = {}) {
   try {
     const usefetch = (fetch_ || fetch);
-    const opts = {};
+    const opts = {credentials: 'include'};
     if (token) { opts.headers = { authorization: 'Bearer '+ token }; }
-    let url = `${apipoint}/user/createtoken`;
+    let url = `${loginpoint}/user/createtoken`;
     if (clearRoles) { url += '?clearroles=true'; }
     const resp = await usefetch(url, opts);
     return resp.ok ? resp.text() : Promise.reject(await resp.text());
@@ -118,12 +118,12 @@ async function refreshToken(token, {fetch_, clearRoles} = {}) {
   }
 }
 
-function getApipoint() {
-  return apipoint;
-}
+function getApipoint() { return apipoint; }
+function getLoginPoint() { return loginpoint; }
+
 
 // function has
 // const cookies = cookie.parse(event.request.headers.get('cookie') || '');
 // const bbscookie = cookies[`beebees${MOD}`];
 
-export { dofetch, refreshToken, getApipoint, retrieveTokenPayload }
+export { dofetch, refreshToken, getApipoint, getLoginPoint, retrieveTokenPayload }
